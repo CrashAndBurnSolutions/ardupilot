@@ -20,7 +20,7 @@
 #include "AP_Math.h"
 
 #include <stdio.h>
-#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL && !defined(__EMSCRIPTEN__)
 #include <fenv.h>
 #endif
 
@@ -77,9 +77,16 @@ static void mat_pivot(const T* A, T* pivot, uint16_t n)
     for(uint16_t i = 0;i < n; i++) {
         uint16_t max_j = i;
         for(uint16_t j=i;j<n;j++){
+#if CONFIG_HAL_BOARD == HAL_BOARD_QURT
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wabsolute-value"
+#endif
             if(fabsF(A[j*n + i]) > fabsF(A[max_j*n + i])) {
                 max_j = j;
             }
+#if CONFIG_HAL_BOARD == HAL_BOARD_QURT
+#pragma clang diagnostic pop
+#endif
         }
 
         if(max_j != i) {
@@ -280,7 +287,7 @@ static bool inverse4x4(const T m[],T invOut[])
     T inv[16], det;
     uint16_t i;
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL && !defined(__EMSCRIPTEN__)
     //disable FE_INEXACT detection as it fails on mac os runs
     int old = fedisableexcept(FE_INEXACT | FE_OVERFLOW);
     if (old < 0) {
@@ -411,7 +418,7 @@ static bool inverse4x4(const T m[],T invOut[])
     for (i = 0; i < 16; i++)
         invOut[i] = inv[i] * det;
     
-#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL && !defined(__EMSCRIPTEN__)
     if (old >= 0 && feenableexcept(old) < 0) {
         // hal.console->printf("inverse4x4(): warning: error on restoring floating exception mask\n");
     }

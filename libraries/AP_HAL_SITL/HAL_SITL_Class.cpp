@@ -34,6 +34,7 @@
 #include <AP_Logger/AP_Logger.h>
 #include <AP_RCProtocol/AP_RCProtocol_config.h>
 #include <AP_HAL/SIMState.h>
+#include <AP_HAL/utility/Socket_native.h>
 
 using namespace HALSITL;
 
@@ -91,8 +92,12 @@ static HALSITL::CANIface* canDrivers[HAL_NUM_CAN_IFACES];
 static Empty::WSPIDeviceManager wspi_mgr_instance;
 
 HAL_SITL::HAL_SITL() :
+    HAL_SITL(&sitlSerial0Driver)
+{}
+
+HAL_SITL::HAL_SITL(AP_HAL::UARTDriver *serial0) :
     AP_HAL::HAL(
-        &sitlSerial0Driver,
+        serial0,
         &sitlSerial1Driver,
         &sitlSerial2Driver,
         &sitlSerial3Driver,
@@ -107,7 +112,7 @@ HAL_SITL::HAL_SITL() :
         &wspi_mgr_instance,
         &sitlAnalogIn,      /* analogin */
         &sitlStorage, /* storage */
-        &sitlSerial0Driver, /* console */
+        serial0,            /* console */
         &sitlGPIO,          /* gpio */
         &sitlRCInput,       /* rcinput */
         &sitlRCOutput,      /* rcoutput */
@@ -173,6 +178,7 @@ static void sig_alrm(int signum)
     static char env[] = "SITL_WATCHDOG_RESET=1";
     putenv(env);
     printf("GOT SIGALRM\n");
+    SocketAPM_native::cleanup_unix_paths();
     execv(new_argv[0], new_argv);
 }
 
@@ -319,10 +325,12 @@ void HAL_SITL::run(int argc, char * const argv[], Callbacks* callbacks) const
 
 void HAL_SITL::actually_reboot()
 {
+    SocketAPM_native::cleanup_unix_paths();
     execv(new_argv[0], new_argv);
     AP_HAL::panic("PANIC: REBOOT FAILED: %s", strerror(errno));
 }
 
+#if CONFIG_HAL_BOARD_SUBTYPE != HAL_BOARD_SUBTYPE_SITL_WASM
 static HAL_SITL hal_sitl_inst;
 
 const AP_HAL::HAL& AP_HAL::get_HAL() {
@@ -332,5 +340,6 @@ const AP_HAL::HAL& AP_HAL::get_HAL() {
 AP_HAL::HAL& AP_HAL::get_HAL_mutable() {
     return hal_sitl_inst;
 }
+#endif // CONFIG_HAL_BOARD_SUBTYPE != HAL_BOARD_SUBTYPE_SITL_WASM
 
 #endif  // CONFIG_HAL_BOARD == HAL_BOARD_SITL

@@ -30,8 +30,14 @@ public:
     // paths for UART devices
     const char *_serial_path[9] {
         "tcp:0:wait",
+#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_SITL_WASM
+        // Browser hosts cannot provide the default TCP listeners for serial1/2.
+        "none",
+        "none",
+#else
         "tcp:2",
         "tcp:3",
+#endif
         "GPS1",
         "GPS2",
         "tcp:5",
@@ -93,6 +99,7 @@ private:
     Scheduler *_scheduler;
 
     uint16_t _rcin_port;
+    const char *_rcin_path;
     uint16_t _fg_view_port;
     uint16_t _irlock_port;
 
