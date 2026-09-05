@@ -177,9 +177,6 @@ env:
 
 jobs:
   build:
-    permissions:
-      contents: read
-      actions: write
     runs-on: ubuntu-22.04
     container: ardupilot/ardupilot-dev-base:v0.2.0
 
