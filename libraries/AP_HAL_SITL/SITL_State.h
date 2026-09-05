@@ -29,13 +29,12 @@ public:
 
     // paths for UART devices
     const char *_serial_path[9] {
+        "tcp:0:wait",
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_SITL_WASM
         // Browser hosts cannot provide the default TCP listeners for serial1/2.
         "none",
         "none",
-        "none",
 #else
-        "tcp:0:wait",
         "tcp:2",
         "tcp:3",
 #endif
