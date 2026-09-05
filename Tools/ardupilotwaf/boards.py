@@ -1613,6 +1613,7 @@ class WASMBoard(SITLBoard):
     def configure(self, cfg):
         if cfg.options.toolchain and cfg.options.toolchain != self.toolchain:
             cfg.fatal('The wasm board requires the emscripten toolchain')
+        # SITLBoard.configure() defaults to native unless TOOLCHAIN is already set.
         cfg.env.TOOLCHAIN = self.toolchain
         super().configure(cfg)
 

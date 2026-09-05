@@ -145,11 +145,13 @@ def configure(cfg):
 
     if cfg.env.TOOLCHAIN == 'emscripten':
         cc = cfg.find_program('emcc', var='CC')
+        # Waf's probe requires EMSCRIPTEN; restore CC afterwards so it is not defined during compilation.
         cfg.env.CC = cc + ['-DEMSCRIPTEN=1']
         cfg.load('c_emscripten')
         cfg.env.CC = cc
         cfg.env.cstlib_PATTERN = 'lib%s.a'
         cfg.env.cxxstlib_PATTERN = 'lib%s.a'
+        # Waf adds this PE/COFF option, which wasm-ld does not support.
         cfg.env.LINKFLAGS = [f for f in cfg.env.LINKFLAGS if f != '-Wl,--enable-auto-import']
         return
 
